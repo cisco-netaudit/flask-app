@@ -23,6 +23,11 @@
     const authorName = {{ user_display_name | tojson }};
     const statusCodes = {{ status_codes | tojson }};
 </script>
+
+<!-- Include external CSS and JS for Markdown rendering -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown.min.css">
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
 <!-- Include JavaScript for modal functionality -->
 <script src="{{ url_for('static', filename='js/manage.checks.js') }}"></script>
 
@@ -59,7 +64,10 @@
                         <i class="fas fa-folder-open me-1"></i>Browse
                     </button>
                     <button type="button" id="openGcModalBtn" {% if not ai_client_ready %}disabled{% endif %}>
-                        <i class="fas fa-robot me-3"></i>Generate (using LLM)
+                        <i class="fas fa-robot me-3"></i>Generate
+                    </button>
+                    <button type="button" id="openHelpBtn">
+                        <i class="fas fa-question-circle me-2"></i>Help
                     </button>
                 </div>
             </form>
@@ -112,9 +120,6 @@
 
         <!-- Modal Footer with Save, Cancel and Test Toggle Button -->
         <div class="modal-footer">
-            <button id="openGuideBtn">
-                <i class="fas fa-book me-2"></i>Guide
-            </button>
             <button id="saveBtn">
                 <i class="fas fa-save me-2"></i>Save
             </button>
@@ -219,5 +224,27 @@
         </div>
     </div>
 </div>
+
+<!-- Check Help Modal -->
+<div id="checkHelpOverlay" class="modal-overlay">
+    <div class="modal" style="width: 1100px; height: 90vh;">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div class="modal-title">Help</div>
+            <button id="closeCheckHelpModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body" style="overflow-y: auto;">
+            <article id="checkHelpContent" class="markdown-body">
+                Loading documentation…
+            </article>
+        </div>
+    </div>
+</div>
+
 
 {% endblock %}

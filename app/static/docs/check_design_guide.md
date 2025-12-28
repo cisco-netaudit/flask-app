@@ -1,20 +1,6 @@
-# Netaudit Check – Detailed Design & Implementation Guide
+# Netaudit Check – Design & Implementation Guide
 
 This document provides an **in-depth explanation** of how Netaudit network audit checks work, with a special focus on **reserved keyword variables**, their **data types**, how they **interact with the main program**, and a **step-by-step procedure** for creating a new check using a real example.
-
----
-
-## Table of Contents
-1. [What Is a Netaudit Check?](#1-what-is-a-netaudit-check)
-2. [Reserved Keyword Variables (Core Contract)](#2-reserved-keyword-variables-core-contract)
-3. [Metadata Variables](#3-metadata-variables)
-4. [Runtime Variables](#4-runtime-variables)
-5. [REQUESTS – Command Execution Contract](#5-requests--command-execution-contract)
-6. [RESULTS – Output Contract](#6-results--output-contract)
-7. [Handlers](#7-handlers)
-8. [Step-by-Step: Creating a New Check (Using Example)](#8-step-by-step-creating-a-new-check-using-example)
-9. [Key Design Principles](#9-key-design-principles)
-10. [Summary](#10-summary)
 
 ---
 

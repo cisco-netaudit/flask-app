@@ -8,8 +8,6 @@ from datetime import datetime
 import logging
 
 from flask import render_template, current_app, url_for, session
-from netmiko.ssh_dispatcher import CLASS_MAPPER_BASE
-
 
 def render_manage_views():
     """
@@ -87,7 +85,6 @@ def render_manage_devices():
         "fields": ["Hostname", "Device Type", "View", "Session"],
         "sessions": list(sessions.keys()),
         "view_list": list(views.keys()),
-        "device_types": CLASS_MAPPER_BASE,
         "current_user": session.get("username", "admin"),
     }
 

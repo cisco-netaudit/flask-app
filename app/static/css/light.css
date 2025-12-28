@@ -962,6 +962,18 @@ main {
   border-left: 2px solid #007bff !important;
 }
 
+#checkHelpContent {
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 10px;
+  background-color: #fff;
+  color: #2d2d2d;
+}
+
+#checkHelpContent .markdown-body {
+    color-scheme: light;
+}
+
 #manage-datatable_filter {
     display: none;
 }

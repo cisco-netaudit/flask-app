@@ -692,56 +692,29 @@ $(document).ready(function () {
     });
 
     /**
-    * Open Check Design Guide
-    */
-    $(document).on('click', '#openGuideBtn', function () {
-        const win = window.open("", "_blank");
+     * Open Check Design Guide Modal
+     */
+    $(document).on('click', '#openHelpBtn', function () {
+        const overlay = $("#checkHelpOverlay");
+        const content = $("#checkHelpContent");
 
-        win.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Check Design Guide</title>
+        overlay.css("display", "flex");
+        content.html("Loading documentation…");
 
-            <!-- GitHub Markdown CSS -->
-            <link rel="stylesheet"
-                  href="https://cdn.jsdelivr.net/npm/github-markdown-css@5.5.1/github-markdown.min.css">
-
-            <style>
-                .markdown-body {
-                    font-size: 14px;
-                    line-height: 1.6;
-                    box-sizing: border-box;
-                    min-width: 200px;
-                    max-width: 980px;
-                    margin: 40px auto;
-                }
-            </style>
-
-            <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"><\/script>
-        </head>
-
-        <body>
-            <article id="content" class="markdown-body">
-                Loading documentation…
-            </article>
-
-            <script>
-                fetch("/static/docs/check_design_guide.md")
-                    .then(r => r.text())
-                    .then(md => {
-                        document.getElementById("content").innerHTML =
-                            marked.parse(md);
-                    })
-                    .catch(err => {
-                        document.getElementById("content").innerText =
-                            "Failed to load documentation.";
-                        console.error(err);
-                    });
-            <\/script>
-        </body>
-        </html>
-        `);
-        win.document.close();
+        fetch("/static/docs/check_design_guide.md")
+            .then(res => {
+                if (!res.ok) throw new Error("Failed to load guide");
+                return res.text();
+            })
+            .then(md => {
+                content.html(marked.parse(md));
+            })
+            .catch(err => {
+                console.error(err);
+                content.html("<p style='color:red;'>Failed to load documentation.</p>");
+            });
+    });
+    $("#closeCheckHelpModalBtn").on("click", function () {
+        $("#checkHelpOverlay").css("display", "none");
     });
 });

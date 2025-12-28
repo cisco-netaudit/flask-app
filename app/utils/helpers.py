@@ -3,11 +3,7 @@ File system utility functions for managing directories and JSON files.
 """
 
 import os
-import json
 import logging
-import os
-import uuid
-import tempfile
 
 
 def ensure_directories_exist(paths):
