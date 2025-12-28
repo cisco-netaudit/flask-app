@@ -1,0 +1,145 @@
+{% extends "base.layout.html" %}
+
+{% block content %}
+
+<script src="{{ url_for('static', filename='js/audit.quickaudit.js') }}"></script>
+
+<script>
+    const statusCodes = {{ status_codes | tojson }};
+</script>
+
+<div class="content">
+
+    <!-- Breadcrumb Navigation -->
+    <div class="header-row">
+        <div class="breadcrumb">
+            {% for crumb in breadcrumbs %}
+                {% if not loop.last %}
+                    <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+                    <span class="sep">></span>
+                {% else %}
+                    <span class="current">{{ crumb.title }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="quickaudit-container">
+
+        <!-- Device List Input Section -->
+        <div class="column">
+            <h4>Device List</h4>
+            <textarea id="device-list" style="flex:1; resize:none; line-height:2;"
+                      placeholder="Enter one hostname per line..."></textarea>
+        </div>
+
+        <!-- Audit Checks Section -->
+        <div class="column">
+            <h4>Audit Checks</h4>
+            <div style="display: flex; gap: 6px; align-items: center;">
+                <div style="padding-left: 12px;">
+                    <input type="checkbox" id="selectAllChecks">
+                </div>
+                <div style="flex: 1;">
+                    <input type="text" class="check-filter" placeholder="Filter checks..." style="width: 100%;">
+                </div>
+            </div>
+
+            <div class="checks-list">
+                {% for check, check_data in checks.items() %}
+                <div class="check-item">
+                    <input type="checkbox" class="individual-check" value="{{ check }}">
+                    {{ check_data.name }}
+                    <span title="{{ check_data.description }}" style="color: #888;">
+                        <i class="fas fa-circle-info"></i>
+                    </span>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Credentials Input Section -->
+        <div class="column">
+            <h4>Credentials</h4>
+            <form class="form-grid">
+                <label>Jumphost IP</label>
+                <input type="text" id="jumphostIp" value="{{ session.get('creds', {}).get('jumphost_ip', '') }}">
+                <span></span>
+
+                <label>Jumphost Username</label>
+                <input type="text" id="jumphostUsername"
+                       value="{{ session.get('creds', {}).get('jumphost_username', '') }}">
+                <span></span>
+
+                <label>Jumphost Password</label>
+                <input type="password" id="jumphostPassword"
+                       value="{{ session.get('creds', {}).get('jumphost_password', '') }}">
+                <button type="button" class="toggle-password" data-target="#jumphostPassword">
+                    <i class="fas fa-eye"></i>
+                </button>
+
+                <label>Network Username</label>
+                <input type="text" id="networkUsername"
+                       value="{{ session.get('creds', {}).get('network_username', '') }}" required>
+                <span></span>
+
+                <label>Network Password</label>
+                <input type="password" id="networkPassword"
+                       value="{{ session.get('creds', {}).get('network_password', '') }}" required>
+                <button type="button" class="toggle-password" data-target="#networkPassword">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </form>
+
+            <div style="height: 20px;"></div>
+
+            <!-- Action Buttons -->
+            <h4>Actions</h4>
+            <div class="actions" style="display: flex; flex-direction: row; gap: 10px;">
+                <button id="runAuditBtn">
+                    <i class="fas fa-bolt"></i> Run
+                </button>
+                <button id="viewReportBtn">
+                    <i class="fas fa-table"></i> View Report
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Audit Report Modal -->
+<div class="modal-overlay" id="viewReportModal">
+    <div class="modal" style="width: 90%; height: 90%;">
+        <div class="modal-header">
+            <h5 class="modal-title">Audit Report</h5>
+            <div style="margin-left:auto;">
+                <button id="exportExcelBtn" style="margin-right: 10px;">
+                    <i class="fas fa-download"></i>
+                </button>
+                <button id="closeModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="modal-body">
+            <!-- Audit Report Table -->
+            <div class="report-section" style="margin-top:20px;">
+                <table id="auditReport" class="display" style="width:100%">
+                    <thead>
+                    <tr>
+                        <th>Device</th>
+                        <th>Overall</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="checkDetailTooltip" class="modal-tooltip"></div>
+
+{% endblock %}

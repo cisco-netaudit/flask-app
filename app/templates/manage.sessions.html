@@ -1,0 +1,62 @@
+{% extends "manage.common.html" %}
+
+{% block modals %}
+
+<!-- Manage Sessions Modal -->
+<script src="{{ url_for('static', filename='js/manage.sessions.js') }}"></script>
+
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" style="width: 600px;">
+
+        <div class="modal-header">
+            <h5 class="modal-title" id="modalTitle">Add Session</h5>
+            <button id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <form id="modalForm" class="form-grid">
+                <label for="sessionName">Name</label>
+                <input type="text" id="sessionName" required>
+                <span></span>
+
+                <label for="sessionJumphostIp">Jumphost IP</label>
+                <input type="text" id="sessionJumphostIp" required>
+                <span></span>
+
+                <label for="sessionJumphostUser">Jumphost Username</label>
+                <input type="text" id="sessionJumphostUser" required>
+                <span></span>
+
+                <label for="sessionJumphostPassword">Jumphost Password</label>
+                <input type="password" id="sessionJumphostPassword">
+                <button type="button" class="toggle-password" data-target="#sessionJumphostPassword">
+                    <i class="fas fa-eye"></i>
+                </button>
+
+                <label for="sessionNetUser">Network Username</label>
+                <input type="text" id="sessionNetUser" required>
+                <span></span>
+
+                <label for="sessionNetPassword">Network Password</label>
+                <input type="password" id="sessionNetPassword">
+                <button type="button" class="toggle-password" data-target="#sessionNetPassword">
+                    <i class="fas fa-eye"></i>
+                </button>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button id="saveBtn">
+                <i class="fas fa-save me-2"></i>Save
+            </button>
+            <button id="cancelModalBtn">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

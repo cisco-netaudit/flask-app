@@ -1,0 +1,132 @@
+{% extends "base.layout.html" %}
+
+{% block content %}
+
+<!-- Include JavaScript for the Audit Dashboard -->
+<script src="{{ url_for('static', filename='js/audit.dashboard.js') }}"></script>
+
+<!-- Pass data from Flask to JavaScript -->
+<script>
+  const donutData = {{ donut_data | tojson }};
+  const timelineData = {{ timeline_data | tojson }};
+</script>
+
+<div class="content">
+
+    <!-- Breadcrumb Navigation -->
+    <div class="header-row">
+        <div class="breadcrumb">
+            {% for crumb in breadcrumbs %}
+                {% if not loop.last %}
+                    <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+                    <span class="sep">></span>
+                {% else %}
+                    <span class="current">{{ crumb.title }}</span>
+                {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <div class="dashboard-content">
+
+        <!-- Top Row: Summary Cards -->
+        <div class="row-tables">
+
+            <!-- Devices Summary Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-desktop"></i> Devices
+                </div>
+                <div class="card-body">
+                    <table class="info-table">
+                        <tr>
+                            <td><i class="fa-solid fa-database text-primary"></i> Total</td>
+                            <td class="value">{{ devices.total_devices }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-circle-check text-success"></i> Passed</td>
+                            <td class="value">{{ devices.passed_devices }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-circle-xmark text-danger"></i> Failed</td>
+                            <td class="value">{{ devices.failed_devices }}</td>
+                        </tr>
+                        <tr>
+                            <td><i class="fa-solid fa-question text-secondary"></i> Unknown</td>
+                            <td class="value">{{ devices.unknown_devices }}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Action Taken Summary Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-clock"></i> Action Taken
+                </div>
+                <div class="card-body">
+                    <table class="info-table">
+                        {% for action, action_data in user_actions.items() %}
+                        <tr>
+                            <td>
+                                <i class="fa-solid {{ action_data['icon'] }} text-{{ action_data['color'] }}"></i>
+                                {{ action }}
+                            </td>
+                            <td class="value">{{ action_data['count'] }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+
+            <!-- Views Summary Card -->
+            <div class="card">
+                <div class="card-header">
+                    <i class="fa-solid fa-list-check"></i> Views (Checks)
+                </div>
+                <div class="card-body scrollable">
+                    <table class="info-table">
+                        {% for view, view_data in views.items() %}
+                        <tr>
+                            <td>
+                                <i class="{{ view_data['icon'] }}"></i> {{ view }}
+                            </td>
+                            <td class="value">{{ view_data['checks'] | length }}</td>
+                        </tr>
+                        {% endfor %}
+                    </table>
+                </div>
+            </div>
+
+        </div> <!-- End Top Row -->
+
+        <!-- Bottom Row: Charts -->
+        <div class="row-charts">
+
+            <!-- Donut Chart: Audit by View -->
+            <div class="card small">
+                <div class="card-header">
+                    <i class="fa-solid fa-chart-pie"></i> Audit by View
+                </div>
+                <div class="card-body">
+                    <canvas id="donutChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Timeline Chart: Device Deployment -->
+            <div class="card large">
+                <div class="card-header">
+                    <i class="fa-solid fa-timeline"></i> Device Deployed
+                </div>
+                <div class="card-body">
+                    <canvas id="timelineChart" class="chart-canvas"></canvas>
+                </div>
+            </div>
+
+        </div> <!-- End Bottom Row -->
+
+    </div> <!-- End Dashboard Content -->
+
+</div> <!-- End Content -->
+
+{% endblock %}

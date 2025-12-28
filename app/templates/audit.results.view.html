@@ -1,0 +1,138 @@
+{% extends "base.layout.html" %}
+
+{% block content %}
+
+<!-- JavaScript Includes -->
+<script src="{{ url_for('static', filename='js/audit.results.view.js') }}"></script>
+<script src="{{ url_for('static', filename='js/audit.results.common.js') }}"></script>
+
+<div class="content">
+    <div class="header-row">
+
+        <!-- Breadcrumb Navigation -->
+        <div class="breadcrumb">
+            {% for crumb in breadcrumbs %}
+            {% if not loop.last %}
+            <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+            <span class="sep">&gt;</span>
+            {% else %}
+            <span class="current">{{ crumb.title }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div style="display:inline-flex; gap:8px;">
+            <button id="runAuditBtn" style="display:none;">
+                <i class="fas fa-bolt"></i>Run Audit
+            </button>
+            <button id="followupBtn" style="display:none;">
+                <i class="fas fa-pencil"></i>Follow Up
+            </button>
+            <input type="text" id="colNameFilter" placeholder="Filter Checks" style="width:200px; margin-left:8px;">
+        </div>
+    </div>
+
+    <!-- Audit Results Table -->
+    <table id="results-viewtable" class="display" style="width: 100%" data-id="{{ view }}">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            {% for col in columns %}
+            <th>{{ col }}</th>
+            {% endfor %}
+        </tr>
+        <tr>
+            <th></th>
+            {% for col in columns %}
+            <th>
+                <input type="text" class="col-filter" data-col="{{ loop.index0 }}" placeholder="Filter {{ col }}">
+            </th>
+            {% endfor %}
+        </tr>
+        </thead>
+        <tbody>
+        {% for data_item in dataset %}
+        {% set device_data = data_item.device_data %}
+        <tr>
+            <td><input type="checkbox" class="row-check" data-id="{{ data_item.device_id }}"></td>
+
+            <!-- Hostname -->
+            <td>
+                <div class="hostname-cell">
+                    <a class="hostname-text"
+                       href="{{ url_for('audit.results.device', device_id=data_item.device_id, view=view) }}">
+                        {{ device_data.hostname }}
+                    </a>
+                    <span class="last-updated">
+                        <i class="fas fa-rotate"></i>{{ data_item.last_audit }}
+                    </span>
+                </div>
+            </td>
+
+            <!-- Overall Status -->
+            <td class="text-center">
+                {% set status = status_codes.get(device_data.status) %}
+                <span class="badge status-{{ status.label | lower | replace(' ', '') }}"
+                      title="{{ status.description }}">
+                    <i class="fas {{ status.icon }}"></i>
+                    <span>{{ status.label }}</span>
+                </span>
+            </td>
+
+            <!-- Action Taken -->
+            <td>{{ device_data.user_action }}</td>
+
+            <!-- Audit Checks -->
+            {% for chk_status in data_item.checks %}
+                {% set status = status_codes.get(chk_status, status_codes[0]) %}
+                <td class="check-col text-center">
+                    <span class="badge status-{{ status.label | lower | replace(' ', '')  }}"
+                          title="{{ status.description }}">
+                        <i class="fas {{ status.icon }}"></i>
+                        <span>{{ status.label }}</span>
+                    </span>
+                </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal for Follow Up -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" style="width:800px;">
+        <div class="modal-header">
+            <h5 class="modal-title">Follow Up</h5>
+            <button id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="modal-body">
+            <form class="form-grid">
+                <label for="userActionSelect">User Action</label>
+                <select id="userActionSelect" style="width: 30%;">
+                    {% for action in std_user_actions %}
+                    <option>{{ action }}</option>
+                    {% endfor %}
+                </select>
+                <span></span>
+
+                <label for="userComment">Comments</label>
+                <textarea id="userComment" style="height:300px;resize:none;" placeholder="Add your notes..."></textarea>
+                <span></span>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button id="saveBtn">
+                <i class="fas fa-save"></i>Save
+            </button>
+            <button id="cancelModalBtn">
+                <i class="fas fa-times"></i>Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

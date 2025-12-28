@@ -1,0 +1,105 @@
+{% extends "base.layout.html" %}
+
+{% block content %}
+
+<!-- Include common JavaScript for management-related operations -->
+<script src="{{ url_for('static', filename='js/manage.common.js') }}"></script>
+
+<div class="content">
+
+    <!-- Header Row with Breadcrumbs and Action Buttons -->
+    <div class="header-row">
+        <div class="breadcrumb">
+            {% for crumb in breadcrumbs %}
+            {% if not loop.last %}
+            <a href="{{ crumb.url }}">{{ crumb.title }}</a>
+            <span class="sep">></span>
+            {% else %}
+            <span class="current">{{ crumb.title }}</span>
+            {% endif %}
+            {% endfor %}
+        </div>
+
+        {% block action_buttons %}
+        <div>
+            <button id="deleteSelectedBtn" style="display:none;">
+                <i class="fas fa-trash me-2"></i>Delete Selected
+            </button>
+            <button id="openModalBtn">
+                <i class="fas fa-plus-circle me-2"></i>{{ add_text }}
+            </button>
+        </div>
+        {% endblock %}
+    </div>
+
+    <!-- Data Table for Management -->
+    <table id="manage-datatable" class="display" style="width:100%">
+        <thead>
+        <tr>
+            <th><input type="checkbox" id="selectAll"></th>
+            {% for col in columns %}
+            <th>{{ col }}</th>
+            {% endfor %}
+            <th>Actions</th>
+        </tr>
+
+        <tr>
+            <th></th>
+            {% for col in columns %}
+            <th>
+                <input type="text" class="col-filter" data-col="{{ loop.index0 }}" placeholder="Filter {{ col }}">
+            </th>
+            {% endfor %}
+            <th></th>
+        </tr>
+        </thead>
+
+        <tbody>
+        <!-- Table Body Content -->
+        {% block table_body %}
+        {% for data_item in dataset %}
+        <tr>
+            <td><input type="checkbox" class="row-check" data-id="{{ data_item[columns[0]] }}"></td>
+            {% for col in columns %}
+            <td>{{ data_item[col] }}</td>
+            {% endfor %}
+            <td class="actions-cell">
+                <button class="edit-btn"><i class="fas fa-edit"></i>Edit</button>
+                <button class="delete-btn"><i class="fas fa-trash"></i>Delete</button>
+            </td>
+        </tr>
+        {% endfor %}
+        {% endblock %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteConfirmModal" class="modal-overlay">
+    <div class="modal">
+        <form>
+            <div class="modal-header">
+                <div class="modal-title">Confirm Delete</div>
+                <button id="closeDeleteModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the selected row(s)?</p>
+            </div>
+            <div class="modal-footer">
+                <button id="confirmDeleteBtn">
+                    <i class="fas fa-trash me-2"></i>Yes, Delete
+                </button>
+                <button id="cancelDeleteBtn">
+                    <i class="fas fa-times me-2"></i>Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Placeholder for Additional Modals -->
+{% block modals %}{% endblock %}
+
+{% endblock %}

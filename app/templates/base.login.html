@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block body %}
+
+<div class="login-container">
+    <div class="login-form">
+        
+        <!-- Brand Logo and Name -->
+        <div class="brand">
+            <img src="{{ url_for('static', filename='img/netaudit.png') }}" alt="Brand Logo" class="brand-logo">
+            <h1 class="brand-name">NETAUDIT</h1>
+            <p style="font-size: 12px; color: #666;">Version {{ app_version }}</p>
+        </div>
+
+        <h3>Login</h3>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for category, message in messages %}
+                        <li class="{{ category }}">
+                            <i class="fa
+                           {% if category == 'success' %} fa-check-circle
+                           {% elif category == 'warning' %} fa-exclamation-triangle
+                           {% elif category == 'danger' %} fa-times-circle
+                           {% elif category == 'info' %} fa-info-circle
+                           {% endif %}">
+                            </i>
+                            <span>{{ message }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+        
+        <!-- Login Form -->
+        <form method="POST" action="{{ url_for('login') }}">
+            <div>
+                <label>Username</label><br>
+                <input type="text" name="username" required><br>
+            </div>
+
+            <div>
+                <label>Password</label><br>
+                <input type="password" name="password" required><br>
+            </div>
+
+            <button type="submit" class="login-button">Login</button>
+        </form>
+
+        <p>Don't have an account? <a href="{{ url_for('register') }}">Register here</a></p>
+
+    </div>
+</div>
+
+{% endblock %}

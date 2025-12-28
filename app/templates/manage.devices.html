@@ -1,0 +1,70 @@
+{% extends "manage.common.html" %}
+
+{% block modals %}
+
+<!-- Include current user and external JavaScript file -->
+<script src="{{ url_for('static', filename='js/manage.devices.js') }}"></script>
+
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" style="width: 600px;">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Add Device(s)</div>
+            <button type="button" id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Modal Body -->
+        <div class="modal-body">
+            <form id="modalForm" class="form-grid">
+
+                <label for="deviceHostnames">Hostname/IP</label>
+                <input type="text" id="deviceHostnames" placeholder="Enter comma-separated hostnames or IPs" required/>
+                <span></span>
+
+                <label>View(s)</label>
+
+                <div class="multiselect">
+                    <div class="multiselect-toggle" id="viewDropdownToggle">
+                        <span id="selectedViewsText">Select view(s)</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+
+                    <div class="multiselect-menu" id="viewDropdownMenu">
+                        {% for view_name in view_list %}
+                        <label class="multiselect-item">
+                            <input type="checkbox" value="{{ view_name }}">
+                            {{ view_name }}
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <span></span>
+
+                <label for="deviceSession">Session</label>
+                <select id="deviceSession" required>
+                    {% for session_name in sessions %}
+                    <option>{{ session_name }}</option>
+                    {% endfor %}
+                </select>
+                <span></span>
+            </form>
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+            <button id="saveBtn">
+                <i class="fas fa-save me-2"></i>Save
+            </button>
+            <button id="cancelModalBtn">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+        </div>
+
+    </div>
+</div>
+
+{% endblock %}

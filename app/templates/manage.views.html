@@ -1,0 +1,110 @@
+<!-- 
+    Template for managing dataset views.
+    Responsible for rendering the table body, data rows, and modal for adding/editing views.
+ -->
+
+{% extends "manage.common.html" %}
+
+{% block table_body %}
+<!-- Table Content Rendering -->
+<script src="{{ url_for('static', filename='js/manage.views.js') }}"></script>
+
+{% for data_item in dataset %}
+<tr>
+    <td>
+        <input type="checkbox" class="row-check" data-id="{{ data_item[columns[0]] }}">
+    </td>
+
+    {% for col in columns %}
+    {% if col == "Checks" %}
+    <td>
+        {% for check in data_item[col] %}
+        <div style="padding: 4px;">
+            <span style="font-weight: 600;">{{ check.name }}</span> - {{ check.description }}
+        </div>
+        {% endfor %}
+    </td>
+    {% elif col == "Name" %}
+    <td>
+        <i class="{{ data_item['Icon'] }}" style="margin-right: 8px;"></i>{{ data_item[col] }}
+    </td>
+    {% else %}
+    <td>{{ data_item[col] }}</td>
+    {% endif %}
+    {% endfor %}
+
+    <td class="actions-cell">
+        <button class="edit-btn" data-id="{{ data_item['Name'] }}">
+            <i class="fas fa-edit"></i>Edit
+        </button>
+        <button class="delete-btn">
+            <i class="fas fa-trash"></i>Delete
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+{% block modals %}
+<!-- Modal for Adding/Editing Views -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" style="width: 700px;">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Add View</div>
+            <button id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <form id="modalForm">
+                <div class="form-grid">
+                    <label for="viewName">Name</label>
+                    <input type="text" id="viewName" required>
+                    <span></span>
+
+                    <label for="viewIcon" style="width:50px">Icon</label>
+                    <div style="display: flex; align-items: center; gap: 5px;">
+                        <input type="text" id="viewIcon" placeholder="e.g. fa fa-network-wired" style="flex-grow: 1;">
+                         {% for icon in view_icons %}
+                            <button type="button" class="icon-btn" data-icon="{{ icon }}">
+                                <i class="{{ icon }}"></i>
+                            </button>
+                         {% endfor %}
+                    </div>
+                </div>
+
+                <div class="dual-listbox">
+                    <div class="listbox-container">
+                        <div class="header">Available Checks</div>
+                        <select id="availableChecks" multiple size="10" style="height: 500px;"></select>
+                    </div>
+
+                    <div class="listbox-buttons">
+                        <button id="moveRight" type="button">
+                            <i class="fas fa-arrow-right"></i>
+                        </button>
+                        <button id="moveLeft" type="button">
+                            <i class="fas fa-arrow-left"></i>
+                        </button>
+                    </div>
+
+                    <div class="listbox-container">
+                        <div class="header">Selected Checks</div>
+                        <select id="selectedChecks" multiple size="10" style="height: 500px;"></select>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button id="saveBtn">
+                <i class="fas fa-save me-2"></i>Save
+            </button>
+            <button id="cancelModalBtn">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}

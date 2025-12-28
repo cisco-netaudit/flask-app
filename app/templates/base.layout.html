@@ -1,0 +1,256 @@
+{% extends "base.html" %}
+
+{% block head %}
+<!-- CSS and JS Imports -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.5/css/jquery.dataTables.min.css"/>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.15/theme/darcula.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<link rel="stylesheet" id="theme-stylesheet" href="{{ url_for('static', filename='css/' + theme + '.css') }}">
+
+<script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.5/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="{{ url_for('static', filename='js/base.layout.sidebar.js') }}"></script>
+<script src="{{ url_for('static', filename='js/base.layout.logger.js') }}"></script>
+<script src="{{ url_for('static', filename='js/base.layout.misc.js') }}"></script>
+{% endblock %}
+
+{% block body %}
+<div class="layout">
+
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <a href="{{ url_for('audit.dashboard') }}" class="tool-icon"></a>
+            <button id="toggleSidebar" class="hamburger-icon">
+                <i class="fa fa-bars"></i>
+            </button>
+        </div>
+        <ul class="sidebar-menu">
+            <li class="separator-header"></li>
+            <li>
+                <a href="{{ url_for('audit.dashboard') }}"
+                   class="{% if request.endpoint == 'audit.dashboard' %}active{% endif %}">
+                    <i class="fa fa-chart-simple"></i>
+                    <span class="menu-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="submenu {% if request.endpoint.startswith('audit.results') %}open{% endif %}">
+                <div class="submenu-text" onclick="toggleSubmenu(this)">
+                    <i class="fa fa-layer-group"></i>
+                    <span class="menu-text">Results</span>
+                    <span class="arrow">{% if request.endpoint.startswith('audit.results') %}▼{% else %}▶{% endif %}</span>
+                </div>
+                <div class="submenu-items {% if request.endpoint.startswith('audit.results') %}open{% endif %}">
+                    {% for view_name, view_data in views.items() %}
+                    <a href="{{ url_for('audit.results.view', view_name=view_name) }}"
+                       class="{% if request.view_args and request.view_args.get('view_name') == view_name %}active{% endif %}">
+                        <i class="{{ view_data['icon'] }}"></i>
+                        <span class="menu-text">{{ view_name }}</span>
+                    </a>
+                    {% endfor %}
+                </div>
+            </li>
+            <li class="separator-body"></li>
+            <li>
+                <a href="{{ url_for('audit.quickaudit') }}"
+                   class="{% if request.endpoint.startswith('audit.quickaudit') %}active{% endif %}">
+                    <i class="fa fa-bolt"></i>
+                    <span class="menu-text">Quick Audit</span>
+                </a>
+            </li>
+            {% if session.get('username') and 'admin' in session.get('role', '') %}
+            <li class="separator-body"></li>
+            <li class="submenu {% if request.endpoint in ['manage.views', 'manage.devices', 'manage.checks', 'manage.sessions', 'manage.users'] %}open{% endif %}">
+                <div class="submenu-text" onclick="toggleSubmenu(this)">
+                    <i class="fa fa-gear"></i>
+                    <span class="menu-text">Manage</span>
+                    <span class="arrow">{% if request.endpoint in ['manage.views', 'manage.devices', 'manage.checks', 'manage.sessions', 'manage.users'] %}▼{% else %}▶{% endif %}</span>
+                </div>
+                <div class="submenu-items {% if request.endpoint in ['manage.views', 'manage.devices', 'manage.checks', 'manage.sessions', 'manage.users'] %}open{% endif %}">
+                    <a href="{{ url_for('manage.views') }}"
+                       class="{% if request.endpoint == 'manage.views' %}active{% endif %}">
+                        <i class="fa fa-table-list"></i>
+                        <span class="menu-text">Views</span>
+                    </a>
+                    <a href="{{ url_for('manage.devices') }}"
+                       class="{% if request.endpoint == 'manage.devices' %}active{% endif %}">
+                        <i class="fa fa-desktop"></i>
+                        <span class="menu-text">Devices</span>
+                    </a>
+                    <a href="{{ url_for('manage.checks') }}"
+                       class="{% if request.endpoint == 'manage.checks' %}active{% endif %}">
+                        <i class="fa fa-list-check"></i>
+                        <span class="menu-text">Checks</span>
+                    </a>
+                    <a href="{{ url_for('manage.sessions') }}"
+                       class="{% if request.endpoint == 'manage.sessions' %}active{% endif %}">
+                        <i class="fa fa-terminal"></i>
+                        <span class="menu-text">Sessions</span>
+                    </a>
+                    <a href="{{ url_for('manage.users') }}"
+                       class="{% if request.endpoint == 'manage.users' %}active{% endif %}">
+                        <i class="fa fa-users-cog"></i>
+                        <span class="menu-text">Users</span>
+                    </a>
+                </div>
+            </li>
+            {% endif %}
+            <li class="spacer"></li>
+            <li>
+                <button id="userPopupBtn" class="user-popup-btn">
+                    <i class="fa fa-user"></i>
+                    <span class="menu-text">{{ user_display_name }}</span>
+                </button>
+            </li>
+        </ul>
+    </aside>
+
+    <!-- Main Content -->
+    <main>
+        <header class="topbar">
+            <div class="brand">
+                <span class="org-logo"></span>
+                NETAUDIT
+                <span class="env-badge env-{{ deployment_stage | lower }}">
+                    {{ deployment_stage | upper }}
+                </span>
+            </div>
+            ️<span class="app-version">Version {{ app_version }}</span>
+            <button id="theme-toggle" class="theme-toggle" data-theme="{{ theme }}">
+                <i class="fa fa-moon"></i>
+            </button>
+        </header>
+        <section class="content">
+            {% block content %}{% endblock %}
+        </section>
+    </main>
+
+    <!-- Logger -->
+    <div id="logger-dock" class="logger-dock">
+        <div class="header">
+            <div class="logger-filters" id="logger-filters">
+                <label><input type="checkbox" class="filter" value="ERROR" checked> ERROR</label>
+                <label><input type="checkbox" class="filter" value="WARNING" checked> WARNING</label>
+                <label><input type="checkbox" class="filter" value="INFO" checked> INFO</label>
+                <label><input type="checkbox" class="filter" value="CRITICAL" checked> CRITICAL</label>
+                <label><input type="checkbox" class="filter" value="DEBUG" checked> DEBUG</label>
+            </div>
+        </div>
+        <div class="table-wrapper">
+            <table id="logger-table">
+                <thead>
+                <tr>
+                    <th class="timestamp" style="width: 180px;">Timestamp</th>
+                    <th class="level" style="width: 100px;">Level</th>
+                    <th class="module" style="width: 150px;">Module</th>
+                    <th class="message" style="width: auto;">Message</th>
+                </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+    <button id="logger-toggle" class="logger-toggle">
+        <i class="fa fa-angle-up"></i> Logger
+    </button>
+
+</div>
+
+<!-- User Popup Menu -->
+<div id="userPopupMenu" class="user-popup-menu">
+    <button id="userAccount" class="user-popup-btn user-popup-menu-btn">
+        <i class="fa fa-user-cog"></i>
+        <span class="menu-text">My Account</span>
+    </button>
+    <a href="{{ url_for('logout') }}">
+        <i class="fa fa-sign-out"></i>
+        <span class="menu-text">Logout</span>
+    </a>
+</div>
+
+
+<!-- User Account Modal -->
+<div id="userAccountModal" class="user-account-modal">
+    <div class="user-account-container">
+        <aside class="user-account-sidebar">
+            <div class="user-account-sidebar-header">
+                <h4>My Account</h4>
+            </div>
+            <hr>
+            <ul class="user-account-sidebar-menu">
+                <li class="active" data-section="general">
+                    <i class="fa fa-gear"></i><span class="menu-text">General</span>
+                </li>
+                <li data-section="reports">
+                    <i class="fa fa-folder-open"></i><span class="menu-text">Reports</span>
+                </li>
+            </ul>
+        </aside>
+        <main class="user-account-main">
+            <header class="user-account-main-header">
+                <h4 id="userAccountSectionTitle">General</h4>
+                <button id="closeUserAccountModalBtn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+            <hr>
+            <section class="user-account-main-content">
+                <div id="section-general" class="user-account-main-section active">
+                    <form id="general-form" class="form-grid">
+                        <label>Username</label>
+                        <input type="text" value="{{ session.get('username') }}" disabled>
+                        <span></span>
+
+                        <label>Role</label>
+                        <input type="text" value="{{ session.get('role') }}" disabled>
+                        <span></span>
+
+                        <label>First Name</label>
+                        <input type="text" name="firstname" value="{{ user.firstname }}">
+                        <span></span>
+
+                        <label>Last Name</label>
+                        <input type="text" name="lastname" value="{{ user.lastname }}">
+                        <span></span>
+
+                        <label>Email</label>
+                        <input type="email" name="email" value="{{ user.email }}">
+                        <span></span>
+
+                        <label>Change Password</label>
+                        <input type="password" name="password" id="userPassword"
+                               placeholder="Enter new password (optional)">
+                        <button type="button" class="toggle-password" data-target="#userPassword">
+                            <i class="fas fa-eye"></i>
+                        </button>
+
+                        <span></span>
+                        <button type="submit" style="width: 100px;">
+                            <i class="fa fa-save"></i>Save
+                        </button>
+                    </form>
+                </div>
+                <div id="section-reports" class="user-account-main-section">
+                    <table id="reportsTable" class="display" style="width:100%">
+                        <thead>
+                        <tr>
+                            <th>Filename</th>
+                            <th>Created</th>
+                            <th>Action</th>
+                        </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+</div>
+
+{% endblock %}

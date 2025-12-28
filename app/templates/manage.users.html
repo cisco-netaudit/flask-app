@@ -1,0 +1,106 @@
+{% extends "manage.common.html" %}
+
+{% block action_buttons %}
+<div>
+    {% if 'superadmin' in session.get('role', '') or 'sysadmin' in session.get('role', '') %}
+        <button id="deleteSelectedBtn" style="display:none;">
+            <i class="fas fa-trash me-2"></i>Delete Selected
+        </button>
+        <button id="openModalBtn">
+            <i class="fas fa-plus-circle me-2"></i>{{ add_text }}
+        </button>
+    {% endif %}
+</div>
+{% endblock %}
+
+
+<!-- Table Body Section -->
+{% block table_body %}
+{% for data_item in dataset %}
+<tr>
+    <td>
+        <input type="checkbox" class="row-check" data-id="{{ data_item[columns[0]] }}">
+    </td>
+
+    {% for col in columns %}
+    <td>{{ data_item[col] }}</td>
+    {% endfor %}
+
+    <td class="actions-cell">
+        <button class="delete-btn"
+                {% if 'superadmin' not in session.get('role', '') and 'sysadmin' not in session.get('role', '') %}
+                    disabled
+                {% endif %}>
+            <i class="fas fa-trash"></i>Delete
+        </button>
+    </td>
+</tr>
+{% endfor %}
+{% endblock %}
+
+<!-- Modals Section -->
+{% block modals %}
+
+<!-- Including Related JavaScript -->
+<script src="{{ url_for('static', filename='js/manage.users.js') }}"></script>
+
+<!-- Modal for Adding Admin -->
+<div id="modalOverlay" class="modal-overlay">
+    <div class="modal" style="width: 500px;">
+        <div class="modal-header">
+            <div class="modal-title" id="modalTitle">Add Admin</div>
+            <button id="closeModalBtn">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+
+        <div class="modal-body">
+            <form id="modalForm" class="form-grid">
+                <label>Username</label>
+                <input type="text" id="userName" required>
+                <span></span>
+
+                <label>Firstname</label>
+                <input type="text" id="userFirstname" required>
+                <span></span>
+
+                <label>Lastname</label>
+                <input type="text" id="userLastname" required>
+                <span></span>
+
+                <label>Password</label>
+                <input type="password" id="userPassword">
+                <button type="button" class="toggle-password" data-target="#userPassword">
+                    <i class="fas fa-eye"></i>
+                </button>
+
+                <label>Email</label>
+                <input type="email" id="userEmail" required>
+                <span></span>
+
+                <label>User Role</label>
+                <div id="#userRole" style="display: flex; gap: 20px;">
+                    <label style="display: flex; gap: 2px;">
+                        <input type="radio" name="userRole" value="admin" checked>
+                        <span style="margin-top:4px;">Admin</span>
+                    </label>
+                    <label style="display: flex; gap: 2px;">
+                        <input type="radio" name="userRole" value="superadmin">
+                        <span style="margin-top:4px;">Super Admin</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+
+        <div class="modal-footer">
+            <button id="saveBtn">
+                <i class="fas fa-save me-2"></i>Save
+            </button>
+            <button id="cancelModalBtn">
+                <i class="fas fa-times me-2"></i>Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
