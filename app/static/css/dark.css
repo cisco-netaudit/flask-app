@@ -763,7 +763,7 @@ main {
   max-width: 400px;
   z-index: 5000;
   font-size: 0.9rem;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .multiselect {

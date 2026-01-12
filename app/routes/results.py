@@ -134,8 +134,10 @@ def results_run():
             "session": session,
         })
 
+    context = {}
+
     audit_service = current_app.modules.AuditService(
-        devices, current_app.utils.CHECKS_DIR, current_app.utils.FACTS_DIR
+        devices, current_app.utils.CHECKS_DIR, current_app.utils.FACTS_DIR, context=context
     )
 
     audit_service.start_thread_executor()

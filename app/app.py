@@ -73,6 +73,7 @@ class FlaskApp(Flask):
             self.utils.STORE_DIR,
             self.utils.RESULTS_DIR,
             self.utils.USERS_DIR,
+            self.utils.PROJECT_DIR,
         ]
         self.utils.ensure_directories_exist(dirs)
 
@@ -136,6 +137,7 @@ class FlaskApp(Flask):
         self.add_url_rule("/reports", "reports", view_func=self.routes.get_reports)
         self.add_url_rule("/reports/delete/<filename>", "reports.delete", view_func=self.routes.delete_report)
         self.add_url_rule("/reports/download/<filename>", "reports.download", view_func=self.routes.download_report)
+        self.add_url_rule("/render_html", "render_html", view_func=self.routes.render_html)
 
         # Authentication routes
         self.add_url_rule("/login", "login", view_func=self.routes.render_login, methods=["GET", "POST"])

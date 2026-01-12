@@ -58,7 +58,7 @@ class AuditService:
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
         logging.debug(f"Loaded check module '{check_file}' for device '{device}'")
-        return getattr(module, "CHECK_CLASS")(device)
+        return getattr(module, "CHECK_CLASS")(device, self.context)
 
     def obt_conn(self, device, session):
         """

@@ -47,7 +47,10 @@ def prepare_test():
 
     try:
         cls = safe_exec_check(code)
-        check = cls(device="TestDevice", context={})
+        context = {
+            "flask": current_app,
+        }
+        check = cls(device="TestDevice", context=context)
 
         # Persistent ID across reloads (string to avoid int mismatch)
         session_id = str(id(check))

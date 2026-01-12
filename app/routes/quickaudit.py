@@ -61,8 +61,10 @@ def quickaudit_run():
             "session": _session
         })
 
+    context = {}
+
     audit_service = current_app.modules.AuditService(
-        devices, current_app.utils.CHECKS_DIR
+        devices, current_app.utils.CHECKS_DIR, current_app.utils.FACTS_DIR, context=context
     )
 
     audit_service.start_thread_executor()

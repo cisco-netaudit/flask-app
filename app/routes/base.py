@@ -6,6 +6,7 @@ report management, and redirection in a Flask application.
 from flask import current_app, jsonify, request, session, redirect, url_for, Response, send_from_directory, abort, make_response
 import json
 import os
+import tempfile
 import bcrypt
 from datetime import datetime
 
@@ -142,3 +143,31 @@ def root_redirect():
     if session.get("username"):
         return redirect(url_for("audit.dashboard"))
     return redirect(url_for("login"))
+
+def render_html():
+    """
+    Renders an HTML file specified by the 'path' query parameter.
+
+    Returns:
+        Response: The content of the HTML file or a 404 error if not found.
+    """
+    file_path = request.args.get("path")
+    if not file_path:
+        abort(404)
+
+    tmp_dir = tempfile.gettempdir()
+    if not os.path.abspath(file_path).startswith(os.path.abspath(tmp_dir)):
+        abort(403)
+
+    if not os.path.exists(file_path):
+        abort(404)
+
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            content = f.read()
+        response = make_response(content)
+        response.headers["Content-Type"] = "text/html"
+        return response
+    except Exception as e:
+        current_app.logger.error(f"Failed to render HTML from {file_path}: {e}")
+        abort(500)

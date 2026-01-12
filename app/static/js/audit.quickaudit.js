@@ -154,13 +154,20 @@ $(function () {
      * when the user hovers over a check status cell.
      */
 
+    let hideTimeout = null;
+
     $(document).on("mouseenter", ".check-cell", function () {
+        clearTimeout(hideTimeout);
+
         const cellId = $(this).data("cellid");
         const check = resultsLookup[cellId] || {};
 
         const detailHtml = `
             <p><b>Observation:</b> ${check.observation || "Not Available"}</p>
-            <p>${(check.comments && check.comments.length) ? check.comments.join("<br>") : "Not Available"}</p>
+            <p>${(check.comments && check.comments.length)
+                ? check.comments.join("<br>")
+                : "Not Available"}
+            </p>
         `;
 
         const $tooltip = $("#checkDetailTooltip");
@@ -181,12 +188,22 @@ $(function () {
         });
     });
 
-    /**
-     * Hides the tooltip when the user stops hovering over a check status cell.
-     */
     $(document).on("mouseleave", ".check-cell", function () {
-        $("#checkDetailTooltip").hide();
+        hideTimeout = setTimeout(() => {
+            $("#checkDetailTooltip").hide();
+        }, 200);
     });
+
+    $("#checkDetailTooltip")
+        .on("mouseenter", function () {
+            clearTimeout(hideTimeout);
+        })
+        .on("mouseleave", function () {
+            hideTimeout = setTimeout(() => {
+                $(this).hide();
+            }, 200);
+        });
+
 
     /**
      * Exports the audit report data to an Excel file.

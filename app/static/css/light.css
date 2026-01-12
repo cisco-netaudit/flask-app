@@ -756,6 +756,7 @@ main {
 .modal-tooltip {
   display: none;
   position: absolute;
+  pointer-events: auto;
   background-color: #fff;
   border-radius: 6px;
   padding: 10px;
@@ -763,7 +764,6 @@ main {
   max-width: 400px;
   z-index: 5000;
   font-size: 0.9rem;
-  pointer-events: none;
 }
 
 .multiselect {

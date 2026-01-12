@@ -27,3 +27,6 @@ USERS_DB = os.path.join(STORE_DIR, "users")
 
 # Define user-specific directory
 USERS_DIR = os.path.join(NETAUDIT_HOME, "users")
+
+# Define project specific space
+PROJECT_DIR = os.path.join(NETAUDIT_HOME, "project")

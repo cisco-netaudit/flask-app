@@ -12,6 +12,7 @@ from .base import (
     delete_report,
     download_report,
     root_redirect,
+    render_html
 )
 
 # Importing authentication and authorization views and decorators.

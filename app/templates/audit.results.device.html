@@ -125,7 +125,7 @@
                     </span>
             </td>
             {% else %}
-            <td style="white-space: pre-wrap;">{{ data_item[col] }}</td>
+            <td style="white-space: pre-wrap;">{{ data_item[col] | safe }}</td>
             {% endif %}
             {% endfor %}
         </tr>

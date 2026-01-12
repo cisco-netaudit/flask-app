@@ -430,7 +430,11 @@ $(document).ready(function () {
         if (results.comments && results.comments.length) {
             results.comments.forEach(comment => {
                 const li = document.createElement("li");
-                li.textContent = comment;
+                if (comment.startsWith("<a ")) {
+                    li.innerHTML = comment;
+                } else {
+                    li.textContent = comment;
+                }
                 commentsEl.appendChild(li);
             });
         } else {
