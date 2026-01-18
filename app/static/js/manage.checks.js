@@ -282,7 +282,10 @@ $(document).ready(function () {
                 }
 
                 // Display command + results
-                document.getElementById('reqCommand').textContent = data.requests.command || "";
+                document.getElementById('reqCommand').textContent =
+                    data.requests.device === "TestDevice"
+                        ? data.requests.command
+                        : `${data.requests.device}:${data.requests.command}`;
                 document.getElementById('testSampleOutput').value = "";
 
                 initResults = {"status": 0, "observation": "No results yet.", "comments": ["Run the check to see results."]};
