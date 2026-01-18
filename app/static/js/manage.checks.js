@@ -344,10 +344,13 @@ $(document).ready(function () {
                 const requests = data.requests || {};
 
                 // Update displayed command and results
+                const device = data?.requests?.device ?? "";
+                const command = data?.requests?.command ?? "";
+
                 document.getElementById('reqCommand').textContent =
-                    data.requests.device === "TestDevice"
-                        ? data.requests.command
-                        : `${data.requests.device}: ${data.requests.command}`;
+                    device === "TestDevice" || !device
+                        ? command
+                        : `${device}:${command}`;
 
                 // Render results
                 renderTestResults(data.results);
