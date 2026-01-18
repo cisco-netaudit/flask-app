@@ -200,7 +200,7 @@ class AuditService:
                             output = conn.sendCommand(req_cmd)
                         self.results[device]["raw"][req_cmd] = output
 
-                    getattr(check_inst, handler_name)(device, req_cmd, output)
+                    getattr(check_inst, handler_name)(req_device, req_cmd, output)
                     last_request = current_request
 
                 self.results[device]["checks"][check_file] = check_inst.RESULTS
