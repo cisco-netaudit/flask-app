@@ -347,7 +347,7 @@ $(document).ready(function () {
                 document.getElementById('reqCommand').textContent =
                     data.requests.device === "TestDevice"
                         ? data.requests.command
-                        : `${data.requests.device}:${data.requests.command}`;
+                        : `${data.requests.device}: ${data.requests.command}`;
 
                 // Render results
                 renderTestResults(data.results);
