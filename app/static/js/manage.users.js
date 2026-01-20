@@ -29,8 +29,20 @@ $(document).ready(function () {
      * Handles form submission for adding or updating an admin user.
      * Gathers user input and sends it to the server via AJAX request.
      */
-    $('#saveBtn').on('click', function () {
-        const key = $('#userName').val().trim();
+    $('#modalForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const $keyInput = $('#userName');
+        const key = $keyInput.val().trim();
+
+        if (!$keyInput.prop('disabled') && window.itemExists(key)) {
+            $keyInput[0].setCustomValidity('User already exists');
+            $keyInput[0].reportValidity();
+            return;
+        } else {
+            $keyInput[0].setCustomValidity('');
+        }
+
         const isNew = !$('#userName').prop('disabled');
 
         const selectedRole = $('input[name="userRole"]:checked').val() || 'admin';

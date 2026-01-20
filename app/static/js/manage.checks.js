@@ -163,8 +163,20 @@ $(document).ready(function () {
     });
 
     // Save Check Functionality
-    $('#saveBtn').on('click', function () {
-        const filename = $('#checkFilename').val().trim();
+    $('#modalForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const $keyInput = $('#checkFilename');
+        const filename = $keyInput.val().trim();
+
+        if (!$keyInput.prop('disabled') && window.itemExists(filename)) {
+            $keyInput[0].setCustomValidity('Check already exists');
+            $keyInput[0].reportValidity();
+            return;
+        } else {
+            $keyInput[0].setCustomValidity('');
+        }
+
         const code = codeEditor.getValue();
 
         $.ajax({

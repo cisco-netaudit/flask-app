@@ -36,7 +36,7 @@ class FlaskApp(Flask):
         self.modules = modules
         self.utils = utils
         self.routes = routes
-        self.session_lifetime = datetime.timedelta(minutes=5)
+        self.session_lifetime = datetime.timedelta(minutes=30)
         self.logger = self.modules.StreamLogger(name="NetauditGlobalLogger",
                                                 filter_regex="werkzeug",
                                                 log_file=self.utils.GLOBAL_LOGGER)

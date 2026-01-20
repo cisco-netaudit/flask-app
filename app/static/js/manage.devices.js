@@ -16,8 +16,9 @@ $(document).ready(function () {
      */
     $('#openModalBtn').on('click', function () {
         $('#modalForm')[0].reset();
-        $('#modalTitle').text('Add Device(s)');
+        setSelectedViews([]);
         $('#deviceHostnames').prop('disabled', false);
+        $('#modalTitle').text('Add Device(s)');
         $('#modalOverlay').css('display', 'flex');
     });
 
@@ -44,6 +45,22 @@ $(document).ready(function () {
         $('#viewDropdownMenu').hide();
     });
 
+    function setSelectedViews(views = []) {
+        // Clear previous selection
+        $('#viewDropdownMenu input[type="checkbox"]').prop('checked', false);
+
+        // Select matching views
+        views.forEach(view => {
+            $('#viewDropdownMenu input[type="checkbox"][value="' + view + '"]')
+                .prop('checked', true);
+        });
+
+        // Update visible text
+        $('#selectedViewsText').text(
+            views.length ? views.join(', ') : 'Select view(s)'
+        );
+    }
+
     /* Update selected text when checkbox changes */
     $('#viewDropdownMenu').on('change', 'input[type="checkbox"]', function () {
         const selectedViews = $('#viewDropdownMenu input:checked')
@@ -68,7 +85,7 @@ $(document).ready(function () {
             if (!device) return;
 
             $('#deviceHostnames').val(key).prop('disabled', true);
-            $('#deviceView').val(device.view || '');
+            setSelectedViews(device.view || []);
             $('#deviceSession').val(device.session || '');
             $('#modalTitle').text('Edit Device');
             $('#modalOverlay').css('display', 'flex');
@@ -78,8 +95,30 @@ $(document).ready(function () {
     /**
      * Submits the form to add or update a device by sending the data to the server.
      */
-    $('#saveBtn').on('click', function () {
-        const key = $('#deviceHostnames').val();
+
+    function anyDeviceExists(input) {
+        const hostnames = input
+            .split(',')
+            .map(h => h.trim())
+            .filter(Boolean);
+
+        return hostnames.some(h => window.itemExists(h));
+    }
+
+    $('#modalForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const $keyInput = $('#deviceHostnames');
+        const key = $keyInput.val().trim();
+
+        if (!$keyInput.prop('disabled') && anyDeviceExists(key)) {
+            $keyInput[0].setCustomValidity('One or more devices already exist');
+            $keyInput[0].reportValidity();
+            return;
+        } else {
+            $keyInput[0].setCustomValidity('');
+        }
+
         const data = {
             view: $('#viewDropdownMenu input:checked')
                 .map(function () { return this.value; })

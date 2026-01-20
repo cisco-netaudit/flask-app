@@ -102,9 +102,22 @@ $(document).ready(function () {
         });
     });
 
+
     // Save: Add / Update View
-    $('#saveBtn').on('click', function () {
-        const key = $('#viewName').val();
+    $('#modalForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const $keyInput = $('#viewName');
+        const key = $keyInput.val().trim();
+
+        if (!$keyInput.prop('disabled') && window.itemExists(key)) {
+            $keyInput[0].setCustomValidity('View already exists');
+            $keyInput[0].reportValidity();
+            return;
+        } else {
+            $keyInput[0].setCustomValidity('');
+        }
+
         let icon = $('#viewIcon').val().trim();
         const checks = $selected.find('option').map(function (_, opt) {
             return $(opt).val();
@@ -127,5 +140,4 @@ $(document).ready(function () {
             }
         });
     });
-
 });

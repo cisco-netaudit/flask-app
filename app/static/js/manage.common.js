@@ -63,10 +63,33 @@ $(document).ready(function () {
      * Opens the delete confirmation modal and sets the items to delete.
      * @param {Array} items - List of item IDs to delete.
      */
-    function openDeleteModal(items) {
-        itemsToDelete = items;
-        $("#deleteConfirmModal").css("display", "flex");
-    }
+     let rowsToDelete = [];
+
+     function openDeleteModal(items, rows = []) {
+         itemsToDelete = items;
+         rowsToDelete = rows;
+         $("#deleteConfirmModal").css("display", "flex");
+     }
+
+    /**
+     * Normalizes a string by trimming whitespace and converting to lowercase.
+     * @param {string} str - The string to normalize.
+     * @returns {string} The normalized string.
+     */
+     function normalizeKey(str) {
+         return str.replace(/\s+/g, ' ').trim().toLowerCase();
+     }
+
+     function itemExists(key) {
+         const normalized = normalizeKey(key);
+
+         return $('#manage-datatable tbody tr').toArray().some(row => {
+             const cellText = $(row).find('td:eq(1)').text();
+             return normalizeKey(cellText) === normalized;
+         });
+     }
+
+     window.itemExists = itemExists;
 
     /**
      * Closes the delete confirmation modal.
@@ -80,26 +103,34 @@ $(document).ready(function () {
 
     // Handle bulk delete button action
     $('#deleteSelectedBtn').on('click', function () {
-        const selectedIds = Array.from(document.querySelectorAll(".row-check:checked"))
-            .map(cb => cb.dataset.id);
-        if (selectedIds.length) openDeleteModal(selectedIds);
+        const rows = [];
+
+        $('.row-check:checked').each(function () {
+            const row = table.row($(this).closest('tr'));
+            rows.push(row);
+        });
+
+        const ids = rows.map(r =>
+            r.node().querySelector('.row-check').dataset.id
+        );
+
+        if (ids.length) {
+            openDeleteModal(ids, rows);
+        }
     });
 
     // Handle individual row delete button action
     $(document).on("click", ".delete-btn", function () {
-        const id = $(this).closest("tr").find(".row-check").data("id");
-        openDeleteModal([id]);
+        const row = table.row($(this).closest("tr"));
+        const id = row.node().querySelector(".row-check").dataset.id;
+        openDeleteModal([id], [row]);
     });
 
     /**
      * Confirms the deletion of the selected items via an AJAX request.
      */
     $('#confirmDeleteBtn').on('click', function () {
-        if (!window.datasetName) {
-            alert("Dataset name is not defined.");
-            return;
-        }
-        if (itemsToDelete.length === 0) return;
+        if (!window.datasetName || !itemsToDelete.length) return;
 
         $.ajax({
             url: '/data/store/delete/' + window.datasetName,
@@ -107,7 +138,9 @@ $(document).ready(function () {
             contentType: 'application/json',
             data: JSON.stringify({ keys: itemsToDelete }),
             success: function () {
-                location.reload();
+                rowsToDelete.forEach(row => row.remove());
+                table.draw(false);
+                closeDeleteModal();
             },
             error: function () {
                 alert("Delete operation failed.");

@@ -54,8 +54,20 @@ $(document).ready(function () {
      * Saves or updates a session based on the form input. Sends the data
      * to the server and reloads the page on success, or alerts the user on failure.
      */
-    $('#saveBtn').on('click', function () {
-        const key = $('#sessionName').val().trim();
+    $('#modalForm').on('submit', function (e) {
+        e.preventDefault();
+
+        const $keyInput = $('#sessionName');
+        const key = $keyInput.val().trim();
+
+        if (!$keyInput.prop('disabled') && window.itemExists(key)) {
+            $keyInput[0].setCustomValidity('Session already exists');
+            $keyInput[0].reportValidity();
+            return;
+        } else {
+            $keyInput[0].setCustomValidity('');
+        }
+
         const data = {
             jumphost_ip: $('#sessionJumphostIp').val(),
             jumphost_username: $('#sessionJumphostUser').val(),
