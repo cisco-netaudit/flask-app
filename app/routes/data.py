@@ -267,6 +267,8 @@ def save_dataset_item(dataset):
             current_app.devices_db.update({device: data})
 
     elif dataset == "sessions":
+        for field in ["jumphost_password", "network_password"]:
+            data[field] = current_app.cipher.encrypt(data[field])
         current_app.sessions_db.update({key: data})
 
     elif dataset == "users":

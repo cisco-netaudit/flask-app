@@ -41,6 +41,7 @@ class FlaskApp(Flask):
                                                 filter_regex="werkzeug",
                                                 log_file=self.utils.GLOBAL_LOGGER)
         self.azureai = self.modules.AzureAIClient()
+        self.cipher = self.modules.PasswordCipher()
         self.user = None
         self.auth = None
 

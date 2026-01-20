@@ -128,6 +128,8 @@ def results_run():
     for device_id in device_list:
         check_list = managed_views.get(view, {}).get("checks", []) if view else []
         session = managed_sessions.get(managed_devices.get(device_id, {}).get("session"), {})
+        for field in ["jumphost_password", "network_password"]:
+            session[field] = current_app.cipher.decrypt(session[field])
         devices.append({
             "device": device_id,
             "check_list": check_list,
