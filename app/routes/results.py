@@ -5,6 +5,7 @@ This module provides audit result views and dashboard auditing capabilities for 
 from flask import current_app, render_template, url_for, request, jsonify
 from datetime import datetime
 import logging
+import copy
 
 
 def render_audit_results_view(view_name):
@@ -127,9 +128,19 @@ def results_run():
 
     for device_id in device_list:
         check_list = managed_views.get(view, {}).get("checks", []) if view else []
-        session = managed_sessions.get(managed_devices.get(device_id, {}).get("session"), {})
-        for field in ["jumphost_password", "network_password"]:
-            session[field] = current_app.cipher.decrypt(session[field])
+
+        session_id = managed_devices.get(device_id, {}).get("session")
+        base_session = managed_sessions.get(session_id)
+
+        if not base_session:
+            raise ValueError(f"No session found for device {device_id}")
+
+        session = copy.deepcopy(base_session)
+
+        for field in ("jumphost_password", "network_password"):
+            if session.get(field):
+                session[field] = current_app.cipher.decrypt(session[field])
+
         devices.append({
             "device": device_id,
             "check_list": check_list,

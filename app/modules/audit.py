@@ -83,7 +83,8 @@ class AuditService:
                 username=session['network_username'],
                 password=session['network_password'],
                 proxy=proxy,
-                handler='NETMIKO'
+                handler='NETMIKO',
+                read_timeout_override=1000
             )
             logging.info(f"Connected to device '{device}' successfully")
             return conn
