@@ -29,7 +29,7 @@ class FlaskApp(Flask):
         """
         super().__init__(import_name, static_folder="static", template_folder="templates", **kwargs)
 
-        self.app_version = "2.0.1"
+        self.app_version = "2.0.5"
         self.deployment_stage = os.environ.get("NETAUDIT_DEPLOYMENT_STAGE", "dev")
         self.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 

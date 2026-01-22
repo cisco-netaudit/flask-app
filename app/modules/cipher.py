@@ -1,58 +1,77 @@
 """
 PasswordCipher Module
 
-This module provides secure encryption and decryption of strings using a Fernet symmetric key 
-stored in the system keyring. It can be utilized in any Python project requiring secure storage 
-of credentials.
+This module provides functionality to encrypt and decrypt passwords
+using the Fernet symmetric encryption from the cryptography library.
+
 """
 
-import getpass
-import keyring
 from cryptography.fernet import Fernet, InvalidToken
-
-SERVICE_NAME = "PasswordCipherService"
-USERNAME = getpass.getuser()
-
+from pathlib import Path
+import os
 
 class PasswordCipher:
     """
-    Manages encryption and decryption of sensitive data using a symmetric Fernet key.
-    The key is securely stored and retrieved from the operating system's keyring.
+    A class to handle encryption and decryption of passwords using Fernet symmetric encryption.
 
-    - Generates a new encryption key if it doesn't exist.
-    - Stores the key securely using the `keyring` module.
-    - Encrypts and decrypts strings via Fernet (symmetric authenticated encryption).
-    - Allows the reset or regeneration of the encryption key.
-
-    WARNING:
-        Resetting or regenerating the key will render any previously encrypted data unreadable.
+    Attributes:
+        key_file (Path): The path to the file storing the Fernet key.
+        fernet (Fernet): The Fernet instance for encryption and decryption.
     """
+    ENV_KEY_NAME = "NETAUDIT_FERNET_KEY"
+    DEFAULT_KEY_FILE = "secrets/fernet.key"
 
-    def __init__(self, service_name: str = SERVICE_NAME, username: str = USERNAME):
-        self.service_name = service_name
-        self.username = username
-        self.key = self._get_or_create_key()
-        self.fernet = Fernet(self.key.encode())
+    def __init__(self, key_file: str | None = None):
+        self.key_file = Path(
+            key_file or os.environ.get("NETAUDIT_KEY_FILE", self.DEFAULT_KEY_FILE)
+        )
 
-    def _get_or_create_key(self) -> str:
-        """Retrieve or generate the encryption key, storing it securely if new."""
-        key = keyring.get_password(self.service_name, self.username)
-        if key:
-            return key
+        self.key = self._load_key()
+        self.fernet = Fernet(self.key)
 
-        key = Fernet.generate_key().decode()
-        keyring.set_password(self.service_name, self.username, key)
+    def _load_key(self) -> bytes:
+        """
+        Loads the Fernet key from an environment variable or a file.
+
+        Returns:
+            The Fernet key as bytes.
+        """
+        env_key = os.environ.get(self.ENV_KEY_NAME)
+        if env_key:
+            return env_key.encode()
+
+        if self.key_file.exists():
+            return self.key_file.read_bytes()
+
+        return self._generate_and_store_key()
+
+    def _generate_and_store_key(self) -> bytes:
+        """
+        Generates a new Fernet key and stores it in the specified key file.
+
+        Returns:
+            The generated Fernet key as bytes.
+        """
+        key = Fernet.generate_key()
+
+        self.key_file.parent.mkdir(parents=True, exist_ok=True)
+        self.key_file.write_bytes(key)
+
+        try:
+            self.key_file.chmod(0o600)
+        except PermissionError:
+            pass
+
         return key
 
     def encrypt(self, plain_text: str) -> str:
         """
-        Encrypt plain text.
-        
+        Encrypts the given plain text using Fernet symmetric encryption.
         Args:
-            plain_text (str): The text to encrypt.
-        
+            plain_text: The plain text string to be encrypted.
+
         Returns:
-            str: The encrypted text, or an empty string if the input is empty.
+            The encrypted string (cipher text).
         """
         if not plain_text:
             return ""
@@ -60,16 +79,12 @@ class PasswordCipher:
 
     def decrypt(self, cipher_text: str) -> str:
         """
-        Decrypt cipher text.
-        
+        Decrypts the given cipher text using Fernet symmetric encryption.
         Args:
-            cipher_text (str): The text to decrypt.
-        
+            cipher_text: The encrypted string to be decrypted.
+
         Returns:
-            str: The decrypted text, or an empty string if the input is empty.
-        
-        Raises:
-            ValueError: If decryption fails due to invalid key or corrupted data.
+            The decrypted plain text string.
         """
         if not cipher_text:
             return ""
@@ -77,24 +92,3 @@ class PasswordCipher:
             return self.fernet.decrypt(cipher_text.encode()).decode()
         except InvalidToken:
             raise ValueError("Decryption failed: invalid key or corrupted data.")
-
-    def reset_key(self):
-        """
-        Delete the stored key from the keyring.
-        
-        WARNING: This makes all previously encrypted data unrecoverable.
-        """
-        try:
-            keyring.delete_password(self.service_name, self.username)
-        except keyring.errors.PasswordDeleteError:
-            pass
-
-    def regenerate_key(self):
-        """
-        Deletes the current key and generates a new one.
-        
-        WARNING: Makes existing encrypted data unrecoverable.
-        """
-        self.reset_key()
-        self.key = self._get_or_create_key()
-        self.fernet = Fernet(self.key.encode())
