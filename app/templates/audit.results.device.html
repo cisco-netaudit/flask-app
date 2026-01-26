@@ -181,7 +181,12 @@
         </div>
         <div class="modal-body" style="overflow-y: auto;">
             {% for cmd, output in device_data.raw.items() %}
+            {% set cmd_parts = cmd.split(':') %}
+            {% if cmd_parts[0] == device_id %}
+            <h5 style="margin: 0 10px; padding:0;">{{ cmd_parts[1] }}</h5>
+            {% else %}
             <h5 style="margin: 0 10px; padding:0;">{{ cmd }}</h5>
+            {% endif %}
             <pre>{{ output }}</pre>
             <hr>
             {% endfor %}

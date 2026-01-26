@@ -36,6 +36,7 @@ class AuditService:
         self.context = context
         self.facts_dir = facts_dir
         self.results = {}
+        self.connections = {}
         self.futures = []
         self.gatherers = {}
         if self.facts_dir:
@@ -107,14 +108,22 @@ class AuditService:
         for device_data in self.devices:
             future = executor.submit(self.audit_task, device_data)
             self.futures.append(future)
+
+
         return self.futures
 
     def wait_for_completion(self):
         """
         Wait for all audit tasks to complete.
         """
+
+        for conn in self.connections.values():
+            if conn:
+                conn.disconnect()
+
         for future in as_completed(self.futures):
             future.result()
+
         logging.info("All device audits completed.")
 
     def _get_device_fqdn(self, device, conn):
@@ -156,18 +165,19 @@ class AuditService:
             "checks": {check_file: {"status": 0, "observation": "", "comments": []} for check_file in check_list},
         }
 
-        conn = self.obt_conn(device, session)
+        self.connections[device] = self.obt_conn(device, session)
 
-        self.results[device]["login"] = bool(conn)
-        self.results[device]["hostname"] = self._get_device_fqdn(device, conn)
+        self.results[device]["login"] = bool(self.connections[device])
 
-        if not conn:
+        if not self.connections[device]:
             logging.error(f"Skipping device '{device}' due to connection failure")
             self.results[device]["status"] = 2
             return
 
+        self.results[device]["hostname"] = self._get_device_fqdn(device, self.connections[device])
+
         if self.gatherers:
-            self.results[device]["facts"] = self.gather_facts(conn)
+            self.results[device]["facts"] = self.gather_facts(self.connections[device])
 
         for check_file in check_list:
             try:
@@ -186,20 +196,18 @@ class AuditService:
 
                     req_device, req_cmd, handler_name = current_request
 
-                    if req_device != device:
-                        if self.results.get(device).get("raw").get(f"{req_device}:{req_cmd}"):
-                            output = self.results[device]["raw"][f"{req_device}:{req_cmd}"]
-                        else:
-                            conn.disconnect()
-                            conn = self.obt_conn(req_device, session)
-                            output = conn.sendCommand(req_cmd)
-                        self.results[device]["raw"][f"{req_device}:{req_cmd}"] = output
+                    key = f"{req_device}:{req_cmd}"
+                    if not self.results[device]["raw"].get(key):
+                        if not self.connections.get(req_device):
+                            self.connections[req_device] = self.obt_conn(req_device, session)
+
+                        if not self.connections[req_device]:
+                            logging.error(f"Connection failed for '{req_device}' during check '{check_file}' on '{device}'")
+                            break
+                        output = self.connections[req_device].sendCommand(req_cmd)
+                        self.results[device]["raw"][key] = output
                     else:
-                        if self.results.get(device)["raw"].get(req_cmd):
-                            output = self.results[device]["raw"][req_cmd]
-                        else:
-                            output = conn.sendCommand(req_cmd)
-                        self.results[device]["raw"][req_cmd] = output
+                        output = self.results[device]["raw"][key]
 
                     getattr(check_inst, handler_name)(req_device, req_cmd, output)
                     last_request = current_request
@@ -215,7 +223,6 @@ class AuditService:
                 self.results[device]["status"] = 2
                 break
 
-        conn.disconnect()
         logging.info(f"Audit task completed for device '{device}'")
 
 
