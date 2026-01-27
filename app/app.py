@@ -108,15 +108,20 @@ class FlaskApp(Flask):
                 role="sysadmin",
             )
 
-    def set_authenticated_user(self, username):
+    def set_authenticated_user(self, username, password):
         """
         Configure the authenticated user db, logger, and Azure AI client.
 
         Args:
             username (str): The username of the authenticated user.
+            password (str): The password of the authenticated user.
         """
         user = self.modules.User(username, self.users_db)
         user.setup_workspace(self.utils.USERS_DIR)
+
+        if password:
+            self.cipher.vault.set(username, password)
+
         session["username"] = username
         session["role"] = user.role
         session["user_dir"] = user.dir

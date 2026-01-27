@@ -2,7 +2,7 @@
 This module provides audit result views and dashboard auditing capabilities for devices.
 """
 
-from flask import current_app, render_template, url_for, request, jsonify
+from flask import current_app, render_template, url_for, request, jsonify, session
 from datetime import datetime
 import logging
 import copy
@@ -135,16 +135,23 @@ def results_run():
         if not base_session:
             raise ValueError(f"No session found for device {device_id}")
 
-        session = copy.deepcopy(base_session)
+        device_session = copy.deepcopy(base_session)
 
-        for field in ("jumphost_password", "network_password"):
-            if session.get(field):
-                session[field] = current_app.cipher.decrypt(session[field])
+        for field in ["jumphost_username", "network_username"]:
+            if device_session.get(field) == "@user":
+                device_session[field] = session.get("username")
+
+        for field in ["jumphost_password", "network_password"]:
+            if device_session[field] == "@user":
+                pwd = current_app.cipher.vault.get(session.get("username"))
+            else:
+                pwd = current_app.cipher.decrypt(device_session[field])
+            device_session[field] = pwd
 
         devices.append({
             "device": device_id,
             "check_list": check_list,
-            "session": session,
+            "session": device_session,
         })
 
     context = {}

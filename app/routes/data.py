@@ -268,7 +268,8 @@ def save_dataset_item(dataset):
 
     elif dataset == "sessions":
         for field in ["jumphost_password", "network_password"]:
-            data[field] = current_app.cipher.encrypt(data[field])
+            if not data.get(field) == "@user":
+                data[field] = current_app.cipher.encrypt(data[field])
         current_app.sessions_db.update({key: data})
 
     elif dataset == "users":

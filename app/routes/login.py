@@ -31,7 +31,7 @@ def render_login():
             flash("User is deactivated", "warning")
             return redirect(url_for("login"))
 
-        current_app.set_authenticated_user(username)
+        current_app.set_authenticated_user(username, password)
         flash("Login successful!", "success")
         return redirect(url_for("audit.dashboard"))
 

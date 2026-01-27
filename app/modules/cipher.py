@@ -1,14 +1,21 @@
 """
-PasswordCipher Module
+Cipher Module
 
 This module provides functionality to encrypt and decrypt passwords
 using the Fernet symmetric encryption from the cryptography library.
+It also includes a simple vault mechanism to store and retrieve
+encrypted passwords with expiration handling.
 
+Classes:
+- PasswordCipher: Handles encryption and decryption of passwords.
+- Vault: A simple vault to store and retrieve encrypted passwords with expiration.
 """
+
 
 from cryptography.fernet import Fernet, InvalidToken
 from pathlib import Path
 import os
+import time
 
 class PasswordCipher:
     """
@@ -28,6 +35,7 @@ class PasswordCipher:
 
         self.key = self._load_key()
         self.fernet = Fernet(self.key)
+        self.vault = Vault(self)
 
     def _load_key(self) -> bytes:
         """
@@ -92,3 +100,61 @@ class PasswordCipher:
             return self.fernet.decrypt(cipher_text.encode()).decode()
         except InvalidToken:
             raise ValueError("Decryption failed: invalid key or corrupted data.")
+
+
+class Vault:
+    """
+    A simple vault to store and retrieve encrypted passwords with expiration.
+
+    Attributes:
+        cipher (PasswordCipher): The PasswordCipher instance for encryption and decryption.
+        _store (dict): Internal storage for usernames, encrypted passwords, and expiration times.
+    """
+
+    def __init__(self, cipher):
+        self.cipher = cipher
+        self._store = {}
+
+    def set(self, username, password, ttl=3600):
+        """
+        Stores an encrypted password for a given username with a time-to-live (TTL).
+
+        Args:
+            username: The username associated with the password.
+            password: The plain text password to be encrypted and stored.
+            ttl: Time-to-live in seconds for the password. Default is 3600 seconds (1 hour).
+        """
+        self._store[username] = {
+            'password': self.cipher.encrypt(password),
+            'expires': time.time() + ttl
+        }
+
+    def get(self, username):
+        """
+        Retrieves and decrypts the password for a given username if it has not expired.
+
+        Args:
+            username: The username associated with the password.
+        Returns:
+            The decrypted password if it exists and has not expired, otherwise None.
+        """
+        entry = self._store.get(username)
+
+        if not entry:
+            return None
+
+        if entry['expires'] < time.time():
+            del self._store[username]
+            return None
+
+        return self.cipher.decrypt(entry['password'])
+
+    def delete(self, username):
+        """
+        Deletes the stored password for a given username.
+
+        Args:
+            username: The username associated with the password to be deleted.
+        """
+        if username in self._store:
+            del self._store[username]
