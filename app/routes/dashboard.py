@@ -70,6 +70,8 @@ def render_dashboard():
 
         # Count user actions
         user_action = device_data.get("user_action", "")
+        if not user_action and status == 2:
+            user_action = "Action Required"
         if user_action in kwargs["user_actions"]:
             kwargs["user_actions"][user_action]["count"] += 1
 
