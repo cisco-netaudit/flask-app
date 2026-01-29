@@ -1122,7 +1122,7 @@ main {
 }
 
 .card-body.scrollable {
-  max-height: 120px;
+  max-height: 170px;
   overflow-y: auto;
 }
 
