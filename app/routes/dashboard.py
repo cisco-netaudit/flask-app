@@ -69,11 +69,9 @@ def render_dashboard():
             kwargs["devices"]["unknown_devices"] += 1
 
         # Count user actions
-        user_action = device_data.get("user_action", "No Action")
+        user_action = device_data.get("user_action", "")
         if user_action in kwargs["user_actions"]:
             kwargs["user_actions"][user_action]["count"] += 1
-        else:
-            kwargs["user_actions"]["No Action"]["count"] += 1
 
         # Update donut chart and timeline for all views
         date_added = device_info.get("date")

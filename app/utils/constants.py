@@ -4,9 +4,10 @@ This module defines general constants used across the Netaudit application.
 
 # Mapping of user actions to their associated display attributes.
 USER_ACTIONS = {
-    "No Action": {"icon": "fa-circle-minus", "color": "secondary"},
+    "Action Required": {"icon": "fa-bell", "color": "warning"},
+    "Remediated": {"icon": "fa-undo", "color": "primary"},
+    "Reviewed - OK": {"icon": "fa-thumbs-up", "color": "info"},
     "False Positive": {"icon": "fa-check-circle", "color": "success"},
-    "Mitigated": {"icon": "fa-tools", "color": "warning"},
     "Accepted Risk": {"icon": "fa-exclamation-triangle", "color": "danger"},
 }
 
