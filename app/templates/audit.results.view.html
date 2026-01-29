@@ -29,6 +29,9 @@
             <button id="followupBtn" style="display:none;">
                 <i class="fas fa-pencil"></i>Follow Up
             </button>
+            <button id="exportAuditBtn" style="display:none">
+                <i class="fas fa-file-archive"></i> Export
+            </button>
             <input type="text" id="colNameFilter" placeholder="Filter Checks" style="width:200px; margin-left:8px;">
         </div>
     </div>
@@ -85,14 +88,14 @@
 
             <!-- Audit Checks -->
             {% for chk_status in data_item.checks %}
-                {% set status = status_codes.get(chk_status, status_codes[0]) %}
-                <td class="check-col text-center">
+            {% set status = status_codes.get(chk_status, status_codes[0]) %}
+            <td class="check-col text-center">
                     <span class="badge status-{{ status.label | lower | replace(' ', '')  }}"
                           title="{{ status.description }}">
                         <i class="fas {{ status.icon }}"></i>
                         <span>{{ status.label }}</span>
                     </span>
-                </td>
+            </td>
             {% endfor %}
         </tr>
         {% endfor %}

@@ -41,6 +41,7 @@ $(document).ready(function () {
     // Reference elements for bulk actions
     const followupBtn = $("#followupBtn")[0];
     const runAuditBtn = $("#runAuditBtn")[0];
+    const exportAuditBtn = $("#exportAuditBtn")[0];
     const selectAll = $("#selectAll")[0];
 
     /**
@@ -48,8 +49,11 @@ $(document).ready(function () {
      */
     function toggleActionBtns() {
         const checked = $(".row-check:checked").length;
-        if (followupBtn) followupBtn.style.display = checked > 0 ? "inline-flex" : "none";
-        if (runAuditBtn) runAuditBtn.style.display = checked > 0 ? "inline-flex" : "none";
+        const show = checked > 0 ? "inline-flex" : "none";
+
+        if (followupBtn) followupBtn.style.display = show;
+        if (runAuditBtn) runAuditBtn.style.display = show;
+        if (exportAuditBtn) exportAuditBtn.style.display = show;
     }
 
     // Attach change event to individual checkboxes to toggle action buttons
@@ -100,4 +104,14 @@ $(document).ready(function () {
             window.runAudit(selected, view);
         }
     });
+
+    // Bulk Export Audit Results
+    $('#exportAuditBtn').on('click', function () {
+        const selected = $(".row-check:checked").map(function () {
+            return $(this).data('id');
+        }).get();
+
+        window.exportAuditResults(selected, this);
+    });
+
 });

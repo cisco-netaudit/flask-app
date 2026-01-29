@@ -32,6 +32,7 @@ from .dashboard import render_dashboard
 from .results import (
     render_audit_results_view,
     render_audit_results_device,
+    snap_audit_results_device,
     results_run,
 )
 

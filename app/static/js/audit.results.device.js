@@ -55,4 +55,12 @@ $(document).ready(function () {
             window.runAudit([deviceId], view);
         }
     });
+
+    /**
+     * Exports the audit report for a single device when the Export Audit button is clicked.
+     */
+    $(document).on("click", "#exportAuditBtn", function () {
+        const deviceId = $(this).data("id");
+        window.exportAuditResults([deviceId], this);
+    });
 });

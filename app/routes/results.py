@@ -2,10 +2,12 @@
 This module provides audit result views and dashboard auditing capabilities for devices.
 """
 
-from flask import current_app, render_template, url_for, request, jsonify
+from flask import current_app, render_template, url_for, request, jsonify, make_response
 from datetime import datetime
 import logging
 import copy
+from zipfile import ZipFile, ZIP_DEFLATED
+from io import BytesIO
 
 
 def render_audit_results_view(view_name):
@@ -56,15 +58,14 @@ def render_audit_results_view(view_name):
     return render_template("audit.results.view.html", **kwargs)
 
 
-def render_audit_results_device(device_id):
+def _build_audit_context(device_id):
     """
-    Render the audit results for a specific device.
+    Prepare the context for rendering audit results for a specific device.
 
     Parameters:
-        device_id (str): The ID of the device for which audit results are rendered.
-
+        device_id (str): The ID of the device.
     Returns:
-        str: The rendered HTML template.
+        dict: Context dictionary for rendering.
     """
     checks = current_app.checks_db.as_dict()
     devices = current_app.devices_db.as_dict()
@@ -72,11 +73,14 @@ def render_audit_results_device(device_id):
 
     device_data = current_app.routes.get_device_results(device_id).get_json()
 
+    view = view or next(iter(current_app.views_db.as_dict()))
+
     kwargs = {
         "columns": ["Check Name", "Status", "Observation", "Comments"],
         "breadcrumbs": [
             {"title": "Audit", "url": url_for("audit")},
-            {"title": "Results", "url": url_for("audit.results.view", view_name=next(iter(current_app.views_db.as_dict())))},
+            {"title": "Results",
+             "url": url_for("audit.results.view", view_name=next(iter(current_app.views_db.as_dict())))},
             {"title": view, "url": url_for("audit.results.view", view_name=view)},
             {"title": device_data.get("hostname", device_id)}
         ],
@@ -107,8 +111,64 @@ def render_audit_results_device(device_id):
 
     kwargs["dataset"] = dataset
 
-    return render_template("audit.results.device.html", **kwargs)
+    return kwargs
 
+def render_audit_results_device(device_id):
+    """
+    Render the audit results for a specific device.
+
+    Parameters:
+        device_id (str): The ID of the device for which audit results are rendered.
+
+    Returns:
+        str: The rendered HTML template.
+    """
+    return render_template("audit.results.device.html", **_build_audit_context(device_id))
+
+def snap_audit_results_device():
+    """
+    Generate a snapshot HTML report for a specific device's audit results.
+    """
+    payload = request.get_json()
+    device_ids = payload.get("device_ids", [])
+
+    if not device_ids:
+        return {"error": "No devices provided"}, 400
+
+    def get_static_file(path):
+        full_path = current_app.static_folder + "/" + path
+        with open(full_path, encoding="utf-8") as f:
+            return f.read()
+
+    generated_at = datetime.now()
+    ts = generated_at.strftime("%Y-%m-%d_%H.%M")
+    zip_filename = f"Audit_Results_{ts}.zip"
+
+    zip_buffer = BytesIO()
+
+    with ZipFile(zip_buffer, "w", ZIP_DEFLATED) as zipf:
+        for device_id in device_ids:
+            html_filename = f"Audit Results_{device_id}_{ts}.html"
+
+            html = render_template(
+                "_audit.snap.html",
+                **_build_audit_context(device_id),
+                embed_local_assets=True,
+                get_static_file=get_static_file,
+                report_filename=html_filename,
+                generated_at=generated_at
+            )
+
+            zipf.writestr(html_filename, html)
+
+    zip_buffer.seek(0)
+
+    response = make_response(zip_buffer.read())
+    response.headers["Content-Type"] = "application/zip"
+    response.headers["Content-Disposition"] = (
+        f"attachment; filename={zip_filename}"
+    )
+    return response
 
 def results_run():
     """

@@ -29,7 +29,7 @@ class FlaskApp(Flask):
         """
         super().__init__(import_name, static_folder="static", template_folder="templates", **kwargs)
 
-        self.app_version = "2.0.5"
+        self.app_version = "2.0.6"
         self.deployment_stage = os.environ.get("NETAUDIT_DEPLOYMENT_STAGE", "dev")
         self.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 
@@ -150,6 +150,7 @@ class FlaskApp(Flask):
         self.add_url_rule("/audit/dashboard", "audit.dashboard", view_func=self.routes.login_required(self.routes.render_dashboard))
         self.add_url_rule("/audit/results/view/<view_name>", "audit.results.view", view_func=self.routes.login_required(self.routes.render_audit_results_view))
         self.add_url_rule("/audit/results/device/<device_id>", "audit.results.device", view_func=self.routes.login_required(self.routes.render_audit_results_device))
+        self.add_url_rule("/audit/results/device/snap", "audit.results.device.snap", view_func=self.routes.login_required(self.routes.snap_audit_results_device), methods=["POST"])
         self.add_url_rule("/audit/results/run", "audit.results.run", view_func=self.routes.login_required(self.routes.results_run), methods=["POST"])
         self.add_url_rule("/audit/quickaudit", "audit.quickaudit", view_func=self.routes.login_required(self.routes.render_quickaudit))
         self.add_url_rule("/audit/quickaudit/run", "audit.quickaudit.run", view_func=self.routes.login_required(self.routes.quickaudit_run), methods=["POST"])

@@ -67,10 +67,69 @@ $(document).ready(function () {
         });
     }
 
+    /**
+     * Export audit results for one or more devices
+     */
+    function exportAuditResults(devices, btn = null) {
+        if (!devices.length) return;
+
+        let originalHtml = null;
+
+        if (btn) {
+            originalHtml = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Exporting…';
+        }
+
+        fetch("/audit/results/device/snap", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ device_ids: devices })
+        })
+        .then(response => {
+            if (!response.ok) throw new Error("Export failed");
+
+            const disposition = response.headers.get("Content-Disposition");
+            let filename = "audit_results.zip";
+
+            if (disposition && disposition.includes("filename=")) {
+                filename = disposition
+                    .split("filename=")[1]
+                    .replace(/"/g, "")
+                    .trim();
+            }
+
+            return response.blob().then(blob => ({ blob, filename }));
+        })
+        .then(({ blob, filename }) => {
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;   // ✅ THIS fixes it
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            window.URL.revokeObjectURL(url);
+        })
+        .catch(err => {
+            console.error(err);
+            alert("Failed to export audit results");
+        })
+        .finally(() => {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        });
+    }
+
     // Expose functions to global scope
     window.openFollowUpModal = openFollowUpModal;
     window.closeFollowUpModal = closeFollowUpModal;
     window.runAudit = runAudit;
+    window.exportAuditResults = exportAuditResults;
 
     // Modal button handlers
     $("#closeModalBtn, #cancelModalBtn").on("click", closeFollowUpModal);
